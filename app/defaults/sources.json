@@ -1,0 +1,42 @@
+[
+  {
+    "id": "nju",
+    "name": "南大镜像 · Ubuntu ISO",
+    "url": "https://mirrors.nju.edu.cn/ubuntu-releases/24.04/ubuntu-24.04.5.1-desktop-amd64.iso",
+    "template": false,
+    "range": true,
+    "enabled": true
+  },
+  {
+    "id": "bfsu",
+    "name": "北外镜像 · Ubuntu ISO",
+    "url": "https://mirrors.bfsu.edu.cn/ubuntu-releases/24.04/ubuntu-24.04.5.1-desktop-amd64.iso",
+    "template": false,
+    "range": true,
+    "enabled": true
+  },
+  {
+    "id": "tuna",
+    "name": "清华镜像 · Ubuntu ISO",
+    "url": "https://mirrors.tuna.tsinghua.edu.cn/ubuntu-releases/24.04/ubuntu-24.04.5.1-desktop-amd64.iso",
+    "template": false,
+    "range": true,
+    "enabled": true
+  },
+  {
+    "id": "cf",
+    "name": "Cloudflare 测速节点",
+    "url": "https://speed.cloudflare.com/__down?bytes={bytes}",
+    "template": true,
+    "range": false,
+    "enabled": true
+  },
+  {
+    "id": "ovh",
+    "name": "OVH 测速文件",
+    "url": "https://proof.ovh.net/files/1Gb.dat",
+    "template": false,
+    "range": true,
+    "enabled": true
+  }
+]

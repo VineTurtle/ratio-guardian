@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>比例守护 · Ratio Guardian</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3v13"/><path d="M3 12l4 4 4-4"/>
+          <path d="M17 21V8"/><path d="M13 12l4-4 4 4"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>比例守护</h1>
+        <span>Ratio Guardian · 自动平衡上下行流量</span>
+      </div>
+    </div>
+
+    <div class="live">
+      <span class="live-label">实时</span>
+      <span class="live-item up"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><b id="hdrUp">—</b></span>
+      <span class="live-item down"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg><b id="hdrDown">—</b></span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="pill" id="statusPill"><i></i><span id="statusText">连接中</span></div>
+      <button class="btn ghost" id="btnQuit">退出</button>
+      <button class="btn primary" id="btnToggle">暂停</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="col-main">
+      <div class="card hero">
+        <div class="gauge-wrap">
+          <svg class="gauge" viewBox="0 0 240 240">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="1" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="55%" stop-color="#34d399"/>
+                <stop offset="100%" stop-color="#a3e635"/>
+              </linearGradient>
+              <filter id="gaugeGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="7" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <path class="gauge-track" id="gaugeTrack" d=""></path>
+            <path class="gauge-value" id="gaugeValue" d="" pathLength="100" filter="url(#gaugeGlow)"></path>
+            <line class="gauge-target" id="gaugeTarget" x1="0" y1="0" x2="0" y2="0"></line>
+          </svg>
+          <div class="gauge-center">
+            <div class="ratio" id="ratioValue">—</div>
+            <div class="ratio-label">下载 / 上传</div>
+          </div>
+        </div>
+
+        <div class="hero-info">
+          <div class="hero-title">
+            <h2 id="heroTitle">正在采集数据</h2>
+            <p id="heroSub">读取本机网卡计数器，稍等片刻…</p>
+          </div>
+          <div class="hero-metrics">
+            <div class="metric"><span>目标比例</span><b id="mTarget">2.0×</b></div>
+            <div class="metric"><span>还需下载</span><b id="mDeficit">—</b></div>
+            <div class="metric"><span>本次运行下载</span><b id="mAppDown">0 B</b></div>
+            <div class="metric"><span>当前限速</span><b id="mRate">—</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="statrow">
+        <div class="card stat">
+          <span class="k"><i class="dot down"></i>累计下载</span>
+          <b id="sDown">0 B</b>
+          <small id="sDownSub">本月 · 含校准</small>
+        </div>
+        <div class="card stat">
+          <span class="k"><i class="dot up"></i>累计上传</span>
+          <b id="sUp">0 B</b>
+          <small id="sUpSub">本月 · 含校准</small>
+        </div>
+        <div class="card stat">
+          <span class="k">今日下载</span>
+          <b id="sTodayDown">0 B</b>
+          <small>00:00 起</small>
+        </div>
+        <div class="card stat">
+          <span class="k">今日上传</span>
+          <b id="sTodayUp">0 B</b>
+          <small>00:00 起</small>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="card-head">
+          <h3>实时速率</h3>
+          <div class="legend">
+            <span><i class="dot down"></i>下载</span>
+            <span><i class="dot up"></i>上传</span>
+            <span class="muted">最近 90 秒</span>
+          </div>
+        </div>
+        <canvas id="chart"></canvas>
+      </div>
+
+      <div class="card tasks-card">
+        <div class="card-head">
+          <h3>下载任务</h3>
+          <span class="muted" id="taskCount">空闲</span>
+        </div>
+        <div class="task-list" id="taskList">
+          <div class="empty">暂无任务</div>
+        </div>
+      </div>
+
+      <div class="card log-card">
+        <div class="card-head">
+          <h3>运行日志</h3>
+          <span class="muted">本地记录</span>
+        </div>
+        <div class="log" id="log"></div>
+      </div>
+    </section>
+
+    <aside class="col-side">
+      <div class="card">
+        <div class="card-head"><h3>工作模式</h3></div>
+        <div class="segmented" id="modeSeg">
+          <button data-mode="auto" class="active">智能</button>
+          <button data-mode="full">全速</button>
+          <button data-mode="manual">手动</button>
+        </div>
+        <p class="hint" id="modeHint">按上传速度动态补充下载，让比例稳定在目标之上。</p>
+
+        <div class="field">
+          <div class="field-top"><label for="targetRatio">目标下载比例</label><output id="ratioOut">2.0×</output></div>
+          <input type="range" id="targetRatio" min="1" max="6" step="0.1" value="2">
+          <div class="ticks"><span>1×</span><span>2×</span><span>4×</span><span>6×</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>下载参数</h3></div>
+
+        <div class="field">
+          <div class="field-top"><label for="maxRate">最大下载速度</label><output id="maxRateOut">20 MB/s</output></div>
+          <input type="range" id="maxRate" min="0" max="100" step="1" value="20">
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="manualRate">手动模式速度</label><output id="manualOut">5 MB/s</output></div>
+          <input type="range" id="manualRate" min="0" max="100" step="1" value="5">
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="concurrency">并发任务</label><output id="concOut">3</output></div>
+          <input type="range" id="concurrency" min="1" max="8" step="1" value="3">
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="chunkMB">单块大小</label><output id="chunkOut">256 MB</output></div>
+          <input type="range" id="chunkMB" min="32" max="1024" step="32" value="256">
+        </div>
+
+        <label class="switch">
+          <input type="checkbox" id="onlyWhenUploading" checked>
+          <i></i><span>仅在有上传时下载</span>
+        </label>
+
+        <label class="switch">
+          <input type="checkbox" id="keepFiles">
+          <i></i><span>保留下载文件</span>
+        </label>
+
+        <div class="field inline-field">
+          <label for="diskCapMB">磁盘上限</label>
+          <div class="input-unit"><input type="number" id="diskCapMB" min="128" step="128" value="2048"><span>MB</span></div>
+        </div>
+
+        <div class="field inline-field">
+          <label for="adapterSel">统计网卡</label>
+          <select id="adapterSel"><option value="auto">自动（推荐）</option></select>
+        </div>
+
+        <button class="btn small ghost full" id="btnClean">清理下载缓存</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h3>数据源</h3>
+          <button class="btn tiny" id="btnAddSource">+ 添加</button>
+        </div>
+        <div class="src-list" id="srcList"></div>
+        <div class="src-add" id="srcAdd" hidden>
+          <input id="srcUrl" placeholder="https://example.com/file.iso">
+          <input id="srcName" placeholder="名称（可选）">
+          <div class="src-add-actions">
+            <button class="btn small primary" id="btnSaveSource">保存</button>
+            <button class="btn small ghost" id="btnCancelSource">取消</button>
+          </div>
+          <p class="hint">支持 <code>{bytes}</code> 占位符，程序会自动替换成单块字节数。</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>本月已用（校准）</h3></div>
+        <p class="hint">把运营商 App 里的用量填进来，比例会更接近运营商的口径。</p>
+        <div class="grid2">
+          <label>已用上行<div class="input-unit"><input type="number" id="baseUpGB" min="0" step="0.1" placeholder="0"><span>GB</span></div></label>
+          <label>已用下行<div class="input-unit"><input type="number" id="baseDownGB" min="0" step="0.1" placeholder="0"><span>GB</span></div></label>
+        </div>
+        <div class="row-btns">
+          <button class="btn small primary" id="btnSaveBase">保存校准</button>
+          <button class="btn small ghost" id="btnResetStats">清零统计</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="footer">
+    <span>数据只保存在本机 <code>data/</code> 目录 · 统计口径为本机网卡流量，与运营商账单可能存在差异</span>
+    <span id="footerUptime"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay-box">
+    <div class="overlay-icon">✓</div>
+    <h2>程序已退出</h2>
+    <p>后台服务已停止，现在可以关闭这个窗口了。</p>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
