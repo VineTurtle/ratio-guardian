@@ -216,3 +216,10 @@ app/defaults/            既定のデータソース
 downloads/               キャッシュ（git 管理外）
 data/                    実行状態・ログ・ポート（git 管理外）
 ```
+---
+
+## 许可 / License
+
+本项目以 [MIT](./LICENSE) 许可证发布。
+
+Licensed under the [MIT License](./LICENSE).
